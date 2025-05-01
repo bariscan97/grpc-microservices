@@ -1,0 +1,48 @@
+package main
+
+import (
+	"log"
+	"net"
+
+	"github.com/bariscan97/ecomm/pkg/db"
+	"github.com/bariscan97/ecomm/ecomm-grpc/pb"
+	"github.com/bariscan97/ecomm/ecomm-grpc/server"
+	"github.com/bariscan97/ecomm/ecomm-grpc/repository"
+	"github.com/ianschenck/envflag"
+	"google.golang.org/grpc"
+)
+
+func main() {
+	var (
+		svcAddr = envflag.String("SVC_ADDR", "0.0.0.0:9091", "address where the ecomm-grpc service is listening on")
+		dbAddr  = envflag.String("DB_ADDR", "127.0.0.1:3306", "address where the database is running on")
+	)
+	envflag.Parse()
+
+	// instantiate db
+	db, err := db.NewDatabase(*dbAddr)
+	if err != nil {
+		log.Fatalf("error opening database: %v", err)
+	}
+	defer db.Close()
+	log.Println("successfully connected to database")
+
+	// instantiate server
+	st := repository.NewMySQLrepository(db.GetDB())
+	srv := server.NewServer(st)
+
+	// register our server with the gRPC server
+	grpcSrv := grpc.NewServer()
+	pb.RegisterEcommServer(grpcSrv, srv)
+
+	listener, err := net.Listen("tcp", *svcAddr)
+	if err != nil {
+		log.Fatalf("listener failed: %v", err)
+	}
+
+	log.Printf("server listening on %s", *svcAddr)
+	err = grpcSrv.Serve(listener)
+	if err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+}

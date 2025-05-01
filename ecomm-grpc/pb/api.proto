@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "github.com/bariscan97/ecomm/ecomm-grpc/pb";
+
+import "google/protobuf/timestamp.proto";
+
+message ProductReq {
+	int64 id = 1;
+    string name = 2;
+    string image = 3;
+    string category = 4;
+    string description = 5;
+    int64 rating = 6;
+    int64 num_reviews = 7;
+    float price = 8;
+    int64 count_in_stock = 9;
+}
+
+message ProductRes {
+    int64 id = 1;
+    string name = 2;
+    string image = 3;
+    string category = 4;
+    string description = 5;
+    int64 rating = 6;
+    int64 num_reviews = 7;
+    float price = 8;
+    int64 count_in_stock = 9;
+    google.protobuf.Timestamp created_at = 10;
+    google.protobuf.Timestamp updated_at = 11;
+}
+
+message ListProductRes {
+    repeated ProductRes products = 1;
+}
+
+message OrderItem {
+    string name = 1;
+    int64 quantity = 2;
+    string image = 3;
+    float price = 4;
+    int64 product_id = 5;
+}
+
+enum OrderStatus {
+    PENDING = 0;
+    SHIPPED = 1;
+    DELIVERED = 2;
+}
+
+message OrderReq {
+    int64 id = 1;
+    repeated OrderItem items = 2;
+    string payment_method = 3;
+    float tax_price = 4;
+    float shipping_price = 5;
+    float total_price = 6;
+    int64 user_id = 7;
+    string user_email = 8;
+    OrderStatus status = 9;
+}
+
+message OrderRes {
+    int64 id = 1;
+    repeated OrderItem items = 2;
+    string payment_method = 3;
+    float tax_price = 4;
+    float shipping_price = 5;
+    float total_price = 6;
+    int64 user_id = 7;
+    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp updated_at = 9;
+    OrderStatus status = 10;
+}
+
+message ListOrderRes {
+    repeated OrderRes orders = 1;
+}
+
+message UserReq {
+    int64 id = 1;
+    string name = 2;
+    string email = 3;
+    string password = 4;
+    bool is_admin = 5;
+}
+
+message UserRes {
+    int64 id = 1;
+    string name = 2;
+    string email = 3;
+    string password = 4;
+    bool is_admin = 5;
+    google.protobuf.Timestamp created_at = 6;
+}
+
+message ListUserRes {
+    repeated UserRes users = 1;
+}
+
+message SessionReq {
+    string id = 1;
+    string user_email = 2;
+    string refresh_token = 3;
+    bool is_revoked = 4;
+    google.protobuf.Timestamp expires_at = 5;
+}
+
+message SessionRes {
+    string id = 1;
+    string user_email = 2;
+    string refresh_token = 3;
+    bool is_revoked = 4;
+    google.protobuf.Timestamp expires_at = 5;
+}
+
+message NotificationEvent {
+    int64 id = 1;
+    string user_email = 2;
+    OrderStatus order_status = 3;
+    int64 order_id = 4;
+    int64 state_id = 5;
+    int64 attempts = 6;
+}
+
+message ListNotificationEventsReq {}
+
+message ListNotificationEventsRes {
+    repeated NotificationEvent events = 1;
+}
+
+enum NotificationResponseType {
+    SUCCESS = 0;
+    FAILURE = 1;
+}
+
+message UpdateNotificationEventReq {
+    int64 id = 1;
+    int64 state_id = 2;
+    int64 order_id = 3;
+    NotificationResponseType response_type = 4;
+    string message = 5;
+}
+
+message UpdateNotificationEventRes {
+    bool succeeded = 1;
+}
+
+service ecomm {
+    rpc CreateProduct(ProductReq) returns (ProductRes) {}
+    rpc GetProduct(ProductReq) returns (ProductRes) {}
+    rpc ListProducts(ProductReq) returns (ListProductRes) {}
+    rpc UpdateProduct(ProductReq) returns (ProductRes) {}
+    rpc DeleteProduct(ProductReq) returns (ProductRes) {}
+
+    rpc CreateOrder(OrderReq) returns (OrderRes) {}
+    rpc GetOrder(OrderReq) returns (OrderRes) {}
+    rpc ListOrders(OrderReq) returns (ListOrderRes) {}
+    rpc UpdateOrderStatus(OrderReq) returns (OrderRes) {}
+    rpc DeleteOrder(OrderReq) returns (OrderRes) {}
+
+    rpc CreateUser(UserReq) returns (UserRes) {}
+    rpc GetUser(UserReq) returns (UserRes) {}
+    rpc ListUsers(UserReq) returns (ListUserRes) {}
+    rpc UpdateUser(UserReq) returns (UserRes) {}
+    rpc DeleteUser(UserReq) returns (UserRes) {}
+
+    rpc CreateSession(SessionReq) returns (SessionRes) {}
+    rpc GetSession(SessionReq) returns (SessionRes) {}
+    rpc RevokeSession(SessionReq) returns (SessionRes) {}
+    rpc DeleteSession(SessionReq) returns (SessionRes) {}
+
+    rpc ListNotificationEvents(ListNotificationEventsReq) returns (ListNotificationEventsRes) {}
+    rpc UpdateNotificationEvent(UpdateNotificationEventReq) returns (UpdateNotificationEventRes) {}
+}
